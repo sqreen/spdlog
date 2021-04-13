@@ -59,9 +59,11 @@ public:
 
     void set_level(level::level_enum log_level);
 
+#ifndef __wasm__
     void flush_on(level::level_enum log_level);
 
     void flush_every(std::chrono::seconds interval);
+#endif
 
     void set_error_handler(void (*handler)(const std::string &msg));
 
@@ -101,7 +103,9 @@ private:
     level::level_enum flush_level_ = level::off;
     void (*err_handler_)(const std::string &msg) = nullptr;
     std::shared_ptr<thread_pool> tp_;
+#ifndef __wasm__
     std::unique_ptr<periodic_worker> periodic_flusher_;
+#endif
     std::shared_ptr<logger> default_logger_;
     bool automatic_registration_ = true;
     size_t backtrace_n_messages_ = 0;

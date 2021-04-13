@@ -8,7 +8,9 @@
 #endif
 
 #include <spdlog/common.h>
+#ifndef __wasm__
 #include <spdlog/details/periodic_worker.h>
+#endif
 #include <spdlog/logger.h>
 #include <spdlog/pattern_formatter.h>
 
@@ -178,6 +180,7 @@ SPDLOG_INLINE void registry::set_level(level::level_enum log_level)
     global_log_level_ = log_level;
 }
 
+#ifndef __wasm__
 SPDLOG_INLINE void registry::flush_on(level::level_enum log_level)
 {
     std::lock_guard<std::mutex> lock(logger_map_mutex_);
@@ -194,6 +197,7 @@ SPDLOG_INLINE void registry::flush_every(std::chrono::seconds interval)
     auto clbk = [this]() { this->flush_all(); };
     periodic_flusher_ = details::make_unique<periodic_worker>(clbk, interval);
 }
+#endif
 
 SPDLOG_INLINE void registry::set_error_handler(void (*handler)(const std::string &msg))
 {
@@ -243,10 +247,12 @@ SPDLOG_INLINE void registry::drop_all()
 // clean all resources and threads started by the registry
 SPDLOG_INLINE void registry::shutdown()
 {
+#ifndef __wasm__
     {
         std::lock_guard<std::mutex> lock(flusher_mutex_);
         periodic_flusher_.reset();
     }
+#endif
 
     drop_all();
 
